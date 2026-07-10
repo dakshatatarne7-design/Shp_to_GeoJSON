@@ -1,0 +1,66 @@
+### Code for Converting Shapefile into GeoJSON 
+#install geopandas- fiona
+!pip install geopandas shapely fiona pyproj
+
+#import labraries
+import geopandas as gpd
+import os
+
+#upload shpfile
+from google.colab import files
+uploaded = files.upload()
+#Locate the .shp file
+shp_path = None
+
+for file in os.listdir():
+    if file.endswith(".shp"):
+        shp_path = file
+        break
+
+if shp_path is None:
+    raise FileNotFoundError("No .shp file found. Please upload a Shapefile.")
+
+print("Shapefile found:", shp_path)
+# Read the shapefile
+gdf = gpd.read_file(shp_path)
+gdf.head()
+
+#Check and reproject the CRS to WGS 84.
+print("Original CRS:", gdf.crs)
+#Locate the .shp file
+shp_path = None
+
+for file in os.listdir():
+    if file.endswith(".shp"):
+        shp_path = file
+        break
+
+if shp_path is None:
+    raise FileNotFoundError("No .shp file found. Please upload a Shapefile.")
+
+print("Shapefile found:", shp_path)
+# Read the shapefile
+gdf = gpd.read_file(shp_path)
+gdf.head()
+
+#Check and reproject the CRS to WGS 84.
+print("Original CRS:", gdf.crs)
+
+if gdf.crs is None:
+  raise ValueError("CRS is missing. Define the source CRS before reprojection.")
+
+gdf = gdf.to_crs(epsg=4326)
+print("Reprojected CRS:", gdf.crs)
+print("Original CRS:", gdf.crs)
+
+#Fix invalid geometries.
+gdf["geometry"] = gdf["geometry"].buffer(0)
+print("Geometry validity check:")
+print(gdf.is_valid.value_counts())
+
+#Export and download.
+output_file = "output.geojson"
+gdf.to_file(output_file, driver="GeoJSON")
+print("GeoJSON successfully created:", output_file)
+from google.colab import files
+files.download(output_file)
